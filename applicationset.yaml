@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: things
+spec:
+  generators:
+    - list:
+        elements:
+          - name: thing-a
+          - name: thing-b
+          - name: thing-c
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: name
+              operator: In
+              values:
+                - thing-a
+        - matchExpressions:
+            - key: name
+              operator: In
+              values:
+                - thing-b
+        - matchExpressions:
+            - key: name
+              operator: In
+              values:
+                - thing-c
+  template:
+    metadata:
+      name: "{{name}}"
+      labels:
+        name: "{{name}}"
+    spec:
+      project: default
+      source:
+        path: chart
+        repoURL: https://github.com/billyshambrook/argocd-applicationset-progressive-example.git
+        helm:
+          releaseName: "{{name}}"
+      destination:
+        server: "https://kubernetes.default.svc"
+        namespace: default
